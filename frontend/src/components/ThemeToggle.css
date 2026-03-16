@@ -1,0 +1,139 @@
+/* ══════════════════════════════════════════════════════
+   ThemeToggle — Sun/Moon Track Slider
+   ══════════════════════════════════════════════════════ */
+
+.theme-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.toggle-track {
+  position: relative;
+  width: 56px;
+  height: 30px;
+  border-radius: 15px;
+  background: linear-gradient(135deg, #74b9ff 0%, #81ecec 100%);
+  transition: background 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.dark .toggle-track {
+  background: linear-gradient(135deg, #2d3436 0%, #0d1b2a 100%);
+}
+
+.toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #ffeaa7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+              background 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.5s ease;
+  box-shadow: 0 0 8px rgba(253, 203, 110, 0.6);
+  z-index: 2;
+}
+
+.dark .toggle-thumb {
+  transform: translateX(26px);
+  background: #dfe6e9;
+  box-shadow: 0 0 8px rgba(223, 230, 233, 0.4);
+}
+
+/* Icons */
+.icon {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  transition: opacity 0.3s ease, transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sun-icon {
+  color: #e17055;
+  opacity: 1;
+  transform: rotate(0deg);
+}
+
+.dark .sun-icon {
+  opacity: 0;
+  transform: rotate(180deg);
+}
+
+.moon-icon {
+  color: #636e72;
+  opacity: 0;
+  transform: rotate(-180deg);
+}
+
+.dark .moon-icon {
+  opacity: 1;
+  transform: rotate(0deg);
+}
+
+/* Stars */
+.stars {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.star {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #ffffff;
+  opacity: 0;
+  transition: opacity 0.5s ease 0.15s;
+}
+
+.dark .star {
+  opacity: 1;
+  animation: twinkle 2s ease-in-out infinite;
+}
+
+.star-1 {
+  top: 7px;
+  left: 10px;
+  animation-delay: 0s !important;
+}
+.star-2 {
+  top: 18px;
+  left: 18px;
+  width: 2px;
+  height: 2px;
+  animation-delay: 0.6s !important;
+}
+.star-3 {
+  top: 10px;
+  left: 27px;
+  width: 2.5px;
+  height: 2.5px;
+  animation-delay: 1.2s !important;
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.4); }
+}
+
+/* Hover effect */
+.theme-toggle:hover .toggle-track {
+  box-shadow: 0 0 16px rgba(108, 92, 231, 0.25);
+}
+
+.theme-toggle:active .toggle-thumb {
+  width: 28px;
+}
+.dark .theme-toggle:active .toggle-thumb {
+  transform: translateX(22px);
+}
