@@ -39,3 +39,23 @@ export async function get(path) {
 export async function createGroup(groupName, members) {
   return post('/group/create', { groupName, members });
 }
+
+export async function fetchGroups() {
+  return get('/group/all');
+}
+
+export async function addMemberToGroup(groupName, members) {
+  return post('/group/add-user', { groupName, targetEmail: members });
+}
+
+export async function addAdmin(groupName, targetEmail) {
+  return post('/group/add-admin', { groupName, targetEmail });
+}
+
+export async function removeAdmin(groupName, targetEmail) {
+  return post('/group/remove-admin', { groupName, targetEmail });
+}
+
+export async function removeMember(groupName, targetEmail) {
+  return post('/group/remove-user', { groupName, targetEmail });
+}

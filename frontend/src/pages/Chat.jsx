@@ -1,25 +1,13 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import ThemeToggle from '../components/ThemeToggle';
 import CreateGroupModal from '../components/CreateGroupModal';
+import GroupManageModal from '../components/GroupManageModal';
+import { fetchGroups } from '../services/api';
 import './Chat.css';
 
-// Placeholder conversations for demo
-const PLACEHOLDER_CONTACTS = [
-  { id: 1, name: 'Alice Johnson', email: 'alice@example.com', lastMsg: 'Hey! How are you doing?', time: '2:34 PM', unread: 2, online: true },
-  { id: 2, name: 'Bob Smith', email: 'bob@example.com', lastMsg: 'That sounds great 🎉', time: '1:12 PM', unread: 0, online: true },
-  { id: 3, name: 'Carol Williams', email: 'carol@example.com', lastMsg: 'See you tomorrow!', time: '12:45 PM', unread: 0, online: false },
-  { id: 4, name: 'David Brown', email: 'david@example.com', lastMsg: 'Thanks for sharing', time: 'Yesterday', unread: 0, online: false },
-  { id: 5, name: 'Eva Martinez', email: 'eva@example.com', lastMsg: 'Let me check and get back to you', time: 'Yesterday', unread: 1, online: true },
-  { id: 6, name: 'Frank Lee', email: 'frank@example.com', lastMsg: 'Good morning!', time: 'Monday', unread: 0, online: false },
-];
-
 const PLACEHOLDER_MESSAGES = [
-  { id: 1, text: 'Hey! How are you doing?', sent: false, time: '2:30 PM' },
-  { id: 2, text: 'I\'m great! Just finished working on the new project.', sent: true, time: '2:31 PM' },
-  { id: 3, text: 'That\'s awesome! What kind of project?', sent: false, time: '2:32 PM' },
-  { id: 4, text: 'A real-time chat application with some cool animations ✨', sent: true, time: '2:33 PM' },
-  { id: 5, text: 'Hey! How are you doing?', sent: false, time: '2:34 PM' },
+  { id: 1, text: 'Welcome to the group! Start chatting.', sent: false, time: '' },
 ];
 
 function getInitials(name) {
@@ -33,16 +21,52 @@ function getAvatarColor(name) {
   return colors[Math.abs(hash) % colors.length];
 }
 
+function formatGroupTime(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  const now = new Date();
+  const diffDays = Math.floor((now - d) / (1000 * 60 * 60 * 24));
+  if (diffDays === 0) return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  if (diffDays === 1) return 'Yesterday';
+  if (diffDays < 7) return d.toLocaleDateString([], { weekday: 'long' });
+  return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+}
+
 export default function Chat() {
   const { user, logout } = useAuth();
-  const [activeChat, setActiveChat] = useState(PLACEHOLDER_CONTACTS[0]);
+  const [groups, setGroups] = useState([]);
+  const [groupsLoading, setGroupsLoading] = useState(true);
+  const [groupsError, setGroupsError] = useState('');
+  const [activeChat, setActiveChat] = useState(null);
   const [messages, setMessages] = useState(PLACEHOLDER_MESSAGES);
   const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [showGroupModal, setShowGroupModal] = useState(false);
   const [groupToast, setGroupToast] = useState('');
+  const [showManageModal, setShowManageModal] = useState(false);
+  const [managedGroup, setManagedGroup] = useState(null);
   const messagesEndRef = useRef(null);
+
+  const loadGroups = useCallback(async () => {
+    setGroupsLoading(true);
+    setGroupsError('');
+    try {
+      const data = await fetchGroups();
+      setGroups(data.groups || []);
+      if (data.groups?.length > 0 && !activeChat) {
+        setActiveChat(data.groups[0]);
+      }
+    } catch (err) {
+      setGroupsError('Failed to load groups.');
+    } finally {
+      setGroupsLoading(false);
+    }
+  }, []); // eslint-disable-line
+
+  useEffect(() => {
+    loadGroups();
+  }, [loadGroups]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -63,10 +87,22 @@ export default function Chat() {
   function handleGroupCreated(group) {
     setGroupToast(`Group "${group.name}" created!`);
     setTimeout(() => setGroupToast(''), 3000);
+    loadGroups(); // refresh list
   }
 
-  const filteredContacts = PLACEHOLDER_CONTACTS.filter(c =>
-    c.name.toLowerCase().includes(searchQuery.toLowerCase())
+  function openManage(group) {
+    setManagedGroup({
+      _id: group._id,
+      name: group.name,
+      // admin/members can be populated objects {_id, email} or raw ObjectId strings
+      adminEmails: (group.admin || []).map(a => (typeof a === 'object' ? a.email : a)).filter(Boolean),
+      memberEmails: (group.members || []).map(m => (typeof m === 'object' ? m.email : m)).filter(Boolean),
+    });
+    setShowManageModal(true);
+  }
+
+  const filteredGroups = groups.filter(g =>
+    g.name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const userEmail = user?.email || 'user@email.com';
@@ -118,7 +154,7 @@ export default function Chat() {
           </svg>
           <input
             type="text"
-            placeholder="Search conversations..."
+            placeholder="Search groups..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             id="search-conversations"
@@ -126,26 +162,39 @@ export default function Chat() {
         </div>
 
         <div className="conversation-list">
-          {filteredContacts.map(contact => (
+          {groupsLoading && (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '32px 0' }}>
+              <div className="loading-spinner" style={{ width: 28, height: 28 }} />
+            </div>
+          )}
+          {!groupsLoading && groupsError && (
+            <p style={{ color: 'var(--error)', fontSize: '0.8rem', textAlign: 'center', padding: '24px 16px' }}>
+              {groupsError}
+            </p>
+          )}
+          {!groupsLoading && !groupsError && filteredGroups.length === 0 && (
+            <p style={{ color: 'var(--text-tertiary)', fontSize: '0.8125rem', textAlign: 'center', padding: '32px 16px' }}>
+              No groups yet. Create one!
+            </p>
+          )}
+          {filteredGroups.map(group => (
             <button
-              key={contact.id}
-              className={`conversation-item ${activeChat?.id === contact.id ? 'active' : ''}`}
-              onClick={() => { setActiveChat(contact); setSidebarOpen(false); }}
+              key={group._id}
+              className={`conversation-item ${activeChat?._id === group._id ? 'active' : ''}`}
+              onClick={() => { setActiveChat(group); setSidebarOpen(false); }}
             >
-              <div className="contact-avatar" style={{ background: getAvatarColor(contact.name) }}>
-                {getInitials(contact.name)}
-                {contact.online && <span className="online-dot" />}
+              <div className="contact-avatar" style={{ background: getAvatarColor(group.name) }}>
+                {getInitials(group.name)}
               </div>
               <div className="contact-info">
                 <div className="contact-top">
-                  <span className="contact-name">{contact.name}</span>
-                  <span className="contact-time">{contact.time}</span>
+                  <span className="contact-name" style={{ textTransform: 'capitalize' }}>{group.name}</span>
+                  <span className="contact-time">{formatGroupTime(group.createdAt)}</span>
                 </div>
                 <div className="contact-bottom">
-                  <span className="contact-last-msg">{contact.lastMsg}</span>
-                  {contact.unread > 0 && (
-                    <span className="unread-badge">{contact.unread}</span>
-                  )}
+                  <span className="contact-last-msg">
+                    {group.members?.length ?? 0} member{group.members?.length !== 1 ? 's' : ''}
+                  </span>
                 </div>
               </div>
             </button>
@@ -165,30 +214,52 @@ export default function Chat() {
             </svg>
           </button>
           {activeChat && (
-            <div className="chat-header-info">
-              <div className="contact-avatar small" style={{ background: getAvatarColor(activeChat.name) }}>
-                {getInitials(activeChat.name)}
-                {activeChat.online && <span className="online-dot" />}
+            <>
+              <div className="chat-header-info">
+                <div className="contact-avatar small" style={{ background: getAvatarColor(activeChat.name) }}>
+                  {getInitials(activeChat.name)}
+                </div>
+                <div>
+                  <span className="chat-header-name" style={{ textTransform: 'capitalize' }}>{activeChat.name}</span>
+                  <span className="chat-header-status">{activeChat.members?.length ?? 0} members</span>
+                </div>
               </div>
-              <div>
-                <span className="chat-header-name">{activeChat.name}</span>
-                <span className="chat-header-status">{activeChat.online ? 'Online' : 'Offline'}</span>
-              </div>
-            </div>
+              <button
+                className="icon-btn"
+                onClick={() => openManage(activeChat)}
+                title="Manage Group"
+                id="manage-group-btn"
+                style={{ marginLeft: 'auto' }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="3" />
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                </svg>
+              </button>
+            </>
           )}
         </div>
 
         {/* Messages */}
         <div className="messages-area">
           <div className="messages-container">
-            {messages.map(msg => (
-              <div key={msg.id} className={`message ${msg.sent ? 'sent' : 'received'}`}>
-                <div className="message-bubble">
-                  <p>{msg.text}</p>
-                  <span className="message-time">{msg.time}</span>
-                </div>
+            {!activeChat ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-tertiary)', gap: 12, paddingTop: 80 }}>
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.4 }}>
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+                <p style={{ fontSize: '0.9rem' }}>Select a group to start chatting</p>
               </div>
-            ))}
+            ) : (
+              messages.map(msg => (
+                <div key={msg.id} className={`message ${msg.sent ? 'sent' : 'received'}`}>
+                  <div className="message-bubble">
+                    <p>{msg.text}</p>
+                    {msg.time && <span className="message-time">{msg.time}</span>}
+                  </div>
+                </div>
+              ))
+            )}
             <div ref={messagesEndRef} />
           </div>
         </div>
@@ -202,15 +273,16 @@ export default function Chat() {
           </button>
           <input
             type="text"
-            placeholder="Type a message..."
+            placeholder={activeChat ? `Message ${activeChat.name}...` : 'Select a group first...'}
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
+            disabled={!activeChat}
             id="message-input"
           />
           <button
             type="submit"
             className={`send-btn ${newMessage.trim() ? 'active' : ''}`}
-            disabled={!newMessage.trim()}
+            disabled={!newMessage.trim() || !activeChat}
             id="send-message-btn"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -226,6 +298,18 @@ export default function Chat() {
         <CreateGroupModal
           onClose={() => setShowGroupModal(false)}
           onCreated={handleGroupCreated}
+        />
+      )}
+
+      {/* Group Manage Modal */}
+      {showManageModal && managedGroup && (
+        <GroupManageModal
+          group={managedGroup}
+          onClose={() => setShowManageModal(false)}
+          onUpdated={(updatedGroup) => {
+            if (updatedGroup) setManagedGroup(prev => ({ ...prev, ...updatedGroup }));
+            loadGroups(); // refresh sidebar
+          }}
         />
       )}
 
