@@ -1,5 +1,5 @@
 import userModel from "../models/user.model.js";
-import userService from "../services/user.services.js";
+import * as userService from "../services/user.services.js";
 import { validationResult } from "express-validator";
 import { redisClient } from "../services/redis.services.js";
 
@@ -14,7 +14,7 @@ const createUserController = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        const user = await userService(email, password);
+        const user = await userService.createUser(email, password);
 
         const token = user.generateToken();
 

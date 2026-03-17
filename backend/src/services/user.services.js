@@ -15,4 +15,4 @@ const createUser = async (email, password) => {
     return user;
 }
 
-export default createUser;
+export { createUser };

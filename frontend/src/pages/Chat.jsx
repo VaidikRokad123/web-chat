@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import ThemeToggle from '../components/ThemeToggle';
+import CreateGroupModal from '../components/CreateGroupModal';
 import './Chat.css';
 
 // Placeholder conversations for demo
@@ -39,6 +40,8 @@ export default function Chat() {
   const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [showGroupModal, setShowGroupModal] = useState(false);
+  const [groupToast, setGroupToast] = useState('');
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -55,6 +58,11 @@ export default function Chat() {
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     }]);
     setNewMessage('');
+  }
+
+  function handleGroupCreated(group) {
+    setGroupToast(`Group "${group.name}" created!`);
+    setTimeout(() => setGroupToast(''), 3000);
   }
 
   const filteredContacts = PLACEHOLDER_CONTACTS.filter(c =>
@@ -79,6 +87,19 @@ export default function Chat() {
             </div>
           </div>
           <div className="sidebar-actions">
+            <button
+              className="icon-btn"
+              onClick={() => setShowGroupModal(true)}
+              title="New Group"
+              id="new-group-btn"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <line x1="19" y1="8" x2="19" y2="14" />
+                <line x1="22" y1="11" x2="16" y2="11" />
+              </svg>
+            </button>
             <ThemeToggle />
             <button className="icon-btn" onClick={logout} title="Logout" id="logout-btn">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -199,6 +220,21 @@ export default function Chat() {
           </button>
         </form>
       </main>
+
+      {/* Group Creation Modal */}
+      {showGroupModal && (
+        <CreateGroupModal
+          onClose={() => setShowGroupModal(false)}
+          onCreated={handleGroupCreated}
+        />
+      )}
+
+      {/* Success toast */}
+      {groupToast && (
+        <div className="toast show" style={{ background: 'var(--success)' }}>
+          {groupToast}
+        </div>
+      )}
     </div>
   );
 }

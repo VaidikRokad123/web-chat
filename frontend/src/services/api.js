@@ -35,3 +35,7 @@ export async function get(path) {
   if (!res.ok) throw { status: res.status, ...data };
   return data;
 }
+
+export async function createGroup(groupName, members) {
+  return post('/group/create', { groupName, members });
+}
