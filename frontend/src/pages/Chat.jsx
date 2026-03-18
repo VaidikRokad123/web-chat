@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import ThemeToggle from '../components/ThemeToggle';
 import CreateGroupModal from '../components/CreateGroupModal';
 import GroupManageModal from '../components/GroupManageModal';
+import ParticleBackground from '../components/ParticleBackground';
 import { fetchGroups } from '../services/api';
 import './Chat.css';
 
@@ -110,6 +111,7 @@ export default function Chat() {
 
   return (
     <div className="chat-layout">
+      <ParticleBackground />
       {/* ── Sidebar ── */}
       <aside className={`sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
         <div className="sidebar-header">

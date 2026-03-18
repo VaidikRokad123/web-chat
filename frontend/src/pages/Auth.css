@@ -71,7 +71,7 @@
 /* ── Card ── */
 .auth-card {
   position: relative;
-  z-index: 2;
+  z-index: 100;
   width: 100%;
   max-width: 420px;
   background: var(--bg-glass);

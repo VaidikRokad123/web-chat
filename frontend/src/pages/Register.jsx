@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import ThemeToggle from '../components/ThemeToggle';
+import ParticleBackground from '../components/ParticleBackground';
 import './Auth.css';
 
 export default function Register() {
@@ -40,6 +41,7 @@ export default function Register() {
 
   return (
     <div className="auth-page">
+      <ParticleBackground />
       <div className="auth-bg">
         <div className="auth-shape shape-1" />
         <div className="auth-shape shape-2" />
