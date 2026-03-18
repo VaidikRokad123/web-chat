@@ -313,3 +313,74 @@
   font-size: 0.8125rem;
   padding: 24px 0;
 }
+
+/* ── Danger Zone — Delete Group ── */
+.gm-danger-zone {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.gm-delete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 16px;
+  background: rgba(231, 76, 60, 0.08);
+  color: var(--error);
+  border: 1.5px solid rgba(231, 76, 60, 0.2);
+  border-radius: 12px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.gm-delete-btn svg { width: 16px; height: 16px; }
+.gm-delete-btn:hover {
+  background: rgba(231, 76, 60, 0.15);
+  border-color: var(--error);
+}
+.gm-delete-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.gm-delete-btn.confirm {
+  background: var(--error);
+  color: #fff;
+  border-color: var(--error);
+  flex: 1;
+}
+.gm-delete-btn.confirm:hover {
+  background: #c0392b;
+}
+
+.gm-confirm-delete {
+  animation: fadeIn 0.2s ease;
+}
+.gm-confirm-delete p {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+  text-align: center;
+}
+.gm-confirm-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.gm-cancel-btn {
+  flex: 1;
+  padding: 10px 16px;
+  background: var(--input-bg);
+  color: var(--text-secondary);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.gm-cancel-btn:hover { background: var(--bg-hover); }
+

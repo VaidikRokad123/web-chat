@@ -1,5 +1,6 @@
 import groupModel from "../models/group.model.js";
 import userModel from "../models/user.model.js";
+import Chat from "../models/message.model.js";
 
 
 const createGroup = async (name, admin, members) => {
@@ -38,7 +39,31 @@ const getAllGroups = async (userId) => {
         const groups = await groupModel
             .find({ $or: [{ admin: userId }, { members: userId }] })
             .populate('admin', 'email')
-            .populate('members', 'email');
+            .populate('members', 'email')
+            .lean();
+
+        // Attach lastMessage to each group
+        for (const group of groups) {
+            const chat = await Chat.findOne({ group: group._id });
+            if (chat && chat.messages.length > 0) {
+                const last = chat.messages[chat.messages.length - 1];
+                group.lastMessage = {
+                    message: last.message,
+                    time: last.time,
+                    type: last.type || 'message'
+                };
+            } else {
+                group.lastMessage = null;
+            }
+        }
+
+        // Sort by most recent activity
+        groups.sort((a, b) => {
+            const timeA = a.lastMessage?.time || a.createdAt;
+            const timeB = b.lastMessage?.time || b.createdAt;
+            return new Date(timeB) - new Date(timeA);
+        });
+
         return groups;
     } catch (error) {
         throw error;
@@ -129,11 +154,24 @@ const removeUser = async (groupId, requesterId, targetUserId) => {
     return group;
 };
 
+const deleteGroup = async (groupId, requesterId) => {
+    const group = await groupModel.findById(groupId);
+    if (!group) throw new Error("Group not found");
+
+    const reqIdStr = requesterId.toString();
+    const isAdmin = group.admin.some(id => id.toString() === reqIdStr);
+    if (!isAdmin) throw new Error("Only admins can delete the group");
+
+    await groupModel.findByIdAndDelete(groupId);
+    return { deleted: true };
+};
+
 export {
     createGroup,
     getAllGroups,
     addUserToGroup,
     addAdmin,
     removeAdmin,
-    removeUser
+    removeUser,
+    deleteGroup
 };

@@ -60,6 +60,14 @@ export async function removeMember(groupName, targetEmail) {
   return post('/group/remove-user', { groupName, targetEmail });
 }
 
+export async function deleteGroup(groupName) {
+  return post('/group/delete', { groupName });
+}
+
+export async function createDirectChat(targetEmail) {
+  return post('/group/direct', { targetEmail });
+}
+
 export async function fetchAllUsers() {
   const data = await get('/user/all');
   return data.users.map(u => u.email);

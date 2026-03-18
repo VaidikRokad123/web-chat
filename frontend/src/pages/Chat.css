@@ -389,6 +389,27 @@
   text-align: right;
 }
 
+.message-sender {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 2px;
+}
+
+.system-message {
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding: 6px 16px;
+  border-radius: 20px;
+  margin: 8px auto;
+  max-width: fit-content;
+  animation: msgSlideIn 0.3s ease;
+}
+
 /* Input bar */
 .message-input-bar {
   display: flex;
@@ -398,6 +419,21 @@
   background: var(--bg-secondary);
   border-top: 1px solid var(--border);
   transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Shown when user was removed from a group */
+.removed-notice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 20px;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border);
+  color: var(--error, #e17055);
+  font-size: 0.825rem;
+  font-weight: 500;
+  text-align: center;
 }
 
 .message-input-bar input {

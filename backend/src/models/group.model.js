@@ -19,6 +19,11 @@ const groupSchema = new mongoose.Schema({
         required: true
     },
 
+    isDirectChat: {
+        type: Boolean,
+        default: false
+    },
+
 
 },
     {

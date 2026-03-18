@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
-import { addAdmin, removeAdmin, removeMember, addMemberToGroup, fetchAllUsers } from '../services/api';
+import { addAdmin, removeAdmin, removeMember, addMemberToGroup, fetchAllUsers, deleteGroup } from '../services/api';
 import './GroupManageModal.css';
 
 const TABS = ['Admins', 'Members'];
 
-export default function GroupManageModal({ group, onClose, onUpdated }) {
+export default function GroupManageModal({ group, onClose, onUpdated, onDeleted }) {
   const [activeTab, setActiveTab] = useState('Admins');
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState({ type: '', msg: '' });
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   // All registered users (emails), fetched once on mount
   const [allUsers, setAllUsers] = useState([]);
@@ -326,6 +327,57 @@ export default function GroupManageModal({ group, onClose, onUpdated }) {
             </div>
           </>
         )}
+
+        {/* ── Delete Group Danger Zone ── */}
+        <div className="gm-danger-zone">
+          {!confirmDelete ? (
+            <button
+              className="gm-delete-btn"
+              onClick={() => setConfirmDelete(true)}
+              disabled={loading}
+              id="delete-group-btn"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+              </svg>
+              Delete Group
+            </button>
+          ) : (
+            <div className="gm-confirm-delete">
+              <p>Are you sure? This cannot be undone.</p>
+              <div className="gm-confirm-actions">
+                <button
+                  className="gm-delete-btn confirm"
+                  onClick={async () => {
+                    setLoading(true);
+                    try {
+                      await deleteGroup(groupName);
+                      onDeleted?.();
+                      onClose();
+                    } catch (err) {
+                      setMsg('error', err.message || 'Failed to delete group.');
+                      setConfirmDelete(false);
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  disabled={loading}
+                  id="confirm-delete-group-btn"
+                >
+                  {loading ? '…' : 'Yes, Delete'}
+                </button>
+                <button
+                  className="gm-cancel-btn"
+                  onClick={() => setConfirmDelete(false)}
+                  disabled={loading}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
 
       </div>
     </div>

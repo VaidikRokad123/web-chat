@@ -43,4 +43,16 @@ router.post("/remove-user",
     groupController.removeUserController
 );
 
+router.post("/delete",
+    authMiddleware.authUser,
+    body("groupName").notEmpty().withMessage("Group name is required"),
+    groupController.deleteGroupController
+);
+
+router.post("/direct",
+    authMiddleware.authUser,
+    body("targetEmail").notEmpty().withMessage("Target email is required"),
+    groupController.createDirectChatController
+);
+
 export default router;
