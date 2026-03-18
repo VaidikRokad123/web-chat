@@ -100,9 +100,16 @@
   display: flex;
   gap: 8px;
   margin-bottom: 16px;
+  align-items: flex-start;
 }
-.gm-action-row input {
+
+/* Search wrapper — fills the flex row and anchors the dropdown */
+.gm-search-wrap {
+  position: relative;
   flex: 1;
+}
+.gm-search-wrap input {
+  width: 100%;
   padding: 10px 14px;
   background: var(--input-bg);
   border: 1.5px solid transparent;
@@ -111,10 +118,73 @@
   font-family: inherit;
   color: var(--text-primary);
   outline: none;
+  box-sizing: border-box;
   transition: border-color 0.2s, background 0.2s;
 }
-.gm-action-row input::placeholder { color: var(--text-tertiary); }
-.gm-action-row input:focus { border-color: var(--accent); background: var(--bg-primary); }
+.gm-search-wrap input::placeholder { color: var(--text-tertiary); }
+.gm-search-wrap input:focus { border-color: var(--accent); background: var(--bg-primary); }
+
+/* Suggestion dropdown */
+.gm-suggestions {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: var(--bg-secondary);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-xl);
+  max-height: 180px;
+  overflow-y: auto;
+  z-index: 200;
+  padding: 4px;
+  margin: 0;
+  list-style: none;
+  animation: fadeIn 0.15s ease;
+}
+.gm-suggestion-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border-radius: 9px;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.gm-suggestion-item:hover,
+.gm-suggestion-item.selected {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.gm-user-icon {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+.gm-suggestion-item:hover .gm-user-icon,
+.gm-suggestion-item.selected .gm-user-icon {
+  opacity: 1;
+}
+
+/* No results */
+.gm-no-suggestions {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: var(--bg-secondary);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 0.8125rem;
+  color: var(--text-tertiary);
+  text-align: center;
+  z-index: 200;
+  animation: fadeIn 0.15s ease;
+}
 
 .gm-action-btn {
   padding: 10px 16px;

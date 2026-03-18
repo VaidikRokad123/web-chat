@@ -1,35 +1,50 @@
-import { useState } from 'react';
-import { createGroup } from '../services/api';
+import { useState, useEffect, useRef } from 'react';
+import { createGroup, fetchAllUsers } from '../services/api';
 import './CreateGroupModal.css';
 
 export default function CreateGroupModal({ onClose, onCreated }) {
   const [groupName, setGroupName] = useState('');
-  const [memberEmail, setMemberEmail] = useState('');
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  function addMember() {
-    const email = memberEmail.trim().toLowerCase();
-    if (!email) return;
-    if (members.includes(email)) {
-      setError('This email is already added.');
-      return;
+  // All registered users (emails)
+  const [allUsers, setAllUsers] = useState([]);
+
+  // Dropdown / search state
+  const [search, setSearch] = useState('');
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    fetchAllUsers().then(setAllUsers).catch(console.error);
+  }, []);
+
+  // Close on outside click
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setDropdownOpen(false);
+      }
     }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Users not yet added as members
+  const suggestions = allUsers
+    .filter(e => !members.includes(e))
+    .filter(e => e.toLowerCase().includes(search.toLowerCase()));
+
+  function handleSelect(email) {
     setMembers(prev => [...prev, email]);
-    setMemberEmail('');
+    setSearch('');
+    setDropdownOpen(false);
     setError('');
   }
 
   function removeMember(email) {
     setMembers(prev => prev.filter(m => m !== email));
-  }
-
-  function handleMemberKeyDown(e) {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      addMember();
-    }
   }
 
   async function handleSubmit(e) {
@@ -87,22 +102,47 @@ export default function CreateGroupModal({ onClose, onCreated }) {
             />
           </div>
 
-          {/* Add Members */}
+          {/* Add Members — searchable dropdown */}
           <div className="modal-field">
             <label htmlFor="member-email-input">Add Members</label>
-            <div className="member-input-row">
-              <input
-                id="member-email-input"
-                type="text"
-                placeholder="Enter member email..."
-                value={memberEmail}
-                onChange={(e) => { setMemberEmail(e.target.value); setError(''); }}
-                onKeyDown={handleMemberKeyDown}
-                autoComplete="off"
-              />
-              <button type="button" className="add-member-btn" onClick={addMember} id="add-member-btn">
-                + Add
-              </button>
+            <div className="member-input-row" ref={dropdownRef} style={{ position: 'relative' }}>
+              <div className="cgm-search-wrap">
+                <input
+                  id="member-email-input"
+                  type="text"
+                  placeholder="Search users to add…"
+                  value={search}
+                  onChange={(e) => { setSearch(e.target.value); setDropdownOpen(true); setError(''); }}
+                  onFocus={() => setDropdownOpen(true)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') setDropdownOpen(false);
+                    if (e.key === 'Enter') { e.preventDefault(); if (suggestions[0]) handleSelect(suggestions[0]); }
+                  }}
+                  autoComplete="off"
+                />
+
+                {dropdownOpen && suggestions.length > 0 && (
+                  <ul className="cgm-suggestions" role="listbox">
+                    {suggestions.map(email => (
+                      <li
+                        key={email}
+                        className="cgm-suggestion-item"
+                        role="option"
+                        onMouseDown={() => handleSelect(email)}
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="cgm-user-icon">
+                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                        </svg>
+                        {email}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {dropdownOpen && search.trim() && suggestions.length === 0 && (
+                  <div className="cgm-no-suggestions">No matching users found</div>
+                )}
+              </div>
             </div>
 
             {/* Pills */}

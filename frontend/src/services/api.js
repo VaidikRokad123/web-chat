@@ -59,3 +59,8 @@ export async function removeAdmin(groupName, targetEmail) {
 export async function removeMember(groupName, targetEmail) {
   return post('/group/remove-user', { groupName, targetEmail });
 }
+
+export async function fetchAllUsers() {
+  const data = await get('/user/all');
+  return data.users.map(u => u.email);
+}

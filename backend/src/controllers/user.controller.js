@@ -94,9 +94,22 @@ const logoutController = async (req, res) => {
 
 }
 
+const getAllUsersController = async (req, res) => {
+    try {
+        const users = await userModel
+            .find({ email: { $ne: req.user.email } })
+            .select('email -_id');
+        return res.status(200).json({ users });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ error: error.message });
+    }
+};
+
 export {
     createUserController,
     loginUserController,
     profileController,
-    logoutController
+    logoutController,
+    getAllUsersController
 };
