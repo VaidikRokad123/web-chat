@@ -21,7 +21,8 @@ export function SocketProvider({ children }) {
     }
 
     // Connect with auth token
-    const newSocket = io('http://localhost:6969', {
+    const serverUrl = import.meta.env.VITE_API_URL || 'http://localhost:6969';
+    const newSocket = io(serverUrl, {
       auth: { token },
       withCredentials: true,
     });
