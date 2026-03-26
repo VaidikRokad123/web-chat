@@ -1,31 +1,19 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { createDirectChat, fetchAllUsers } from '../services/api';
 import './CreateGroupModal.css'; // reuse same modal styles
 
 export default function StartChatModal({ onClose, onCreated, currentUserEmail }) {
   const [allUsers, setAllUsers] = useState([]);
   const [search, setSearch] = useState('');
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const dropdownRef = useRef(null);
 
   useEffect(() => {
     fetchAllUsers().then(setAllUsers).catch(console.error);
   }, []);
 
-  useEffect(() => {
-    function handleClickOutside(e) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setDropdownOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  // Exclude current user from the list
-  const suggestions = allUsers
+  // Exclude current user, filter by search
+  const available = allUsers
     .filter(e => e !== currentUserEmail)
     .filter(e => e.toLowerCase().includes(search.toLowerCase()));
 
@@ -57,44 +45,35 @@ export default function StartChatModal({ onClose, onCreated, currentUserEmail })
         </div>
 
         {/* Search */}
-        <div className="modal-field" ref={dropdownRef} style={{ position: 'relative' }}>
+        <div className="modal-field">
           <label htmlFor="dm-search-input">Select a user to chat with</label>
-          <div className="cgm-search-wrap">
-            <input
-              id="dm-search-input"
-              type="text"
-              placeholder="Search users…"
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); setDropdownOpen(true); setError(''); }}
-              onFocus={() => setDropdownOpen(true)}
-              onKeyDown={(e) => {
-                if (e.key === 'Escape') setDropdownOpen(false);
-              }}
-              autoComplete="off"
-              autoFocus
-            />
+          <input
+            id="dm-search-input"
+            type="text"
+            placeholder="Search users…"
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setError(''); }}
+            autoComplete="off"
+            autoFocus
+          />
 
-            {dropdownOpen && suggestions.length > 0 && (
-              <ul className="cgm-suggestions" role="listbox">
-                {suggestions.map(email => (
-                  <li
-                    key={email}
-                    className="cgm-suggestion-item"
-                    role="option"
-                    onMouseDown={() => handleSelect(email)}
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="cgm-user-icon">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-                    </svg>
-                    {email}
-                  </li>
-                ))}
-              </ul>
+          {/* Available users — inline list */}
+          <div className="inline-user-list">
+            {available.length === 0 && search.trim() && (
+              <div className="inline-no-users">No matching users found</div>
             )}
-
-            {dropdownOpen && search.trim() && suggestions.length === 0 && (
-              <div className="cgm-no-suggestions">No matching users found</div>
-            )}
+            {available.map(email => (
+              <div
+                key={email}
+                className="inline-user-item"
+                onClick={() => handleSelect(email)}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-user-icon">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                </svg>
+                {email}
+              </div>
+            ))}
           </div>
         </div>
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { createGroup, fetchAllUsers } from '../services/api';
 import './CreateGroupModal.css';
 
@@ -10,36 +10,20 @@ export default function CreateGroupModal({ onClose, onCreated }) {
 
   // All registered users (emails)
   const [allUsers, setAllUsers] = useState([]);
-
-  // Dropdown / search state
   const [search, setSearch] = useState('');
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
 
   useEffect(() => {
     fetchAllUsers().then(setAllUsers).catch(console.error);
   }, []);
 
-  // Close on outside click
-  useEffect(() => {
-    function handleClickOutside(e) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setDropdownOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  // Users not yet added as members
-  const suggestions = allUsers
+  // Users not yet added as members, filtered by search
+  const available = allUsers
     .filter(e => !members.includes(e))
     .filter(e => e.toLowerCase().includes(search.toLowerCase()));
 
   function handleSelect(email) {
     setMembers(prev => [...prev, email]);
     setSearch('');
-    setDropdownOpen(false);
     setError('');
   }
 
@@ -102,50 +86,19 @@ export default function CreateGroupModal({ onClose, onCreated }) {
             />
           </div>
 
-          {/* Add Members — searchable dropdown */}
+          {/* Add Members — inline list with search filter */}
           <div className="modal-field">
             <label htmlFor="member-email-input">Add Members</label>
-            <div className="member-input-row" ref={dropdownRef} style={{ position: 'relative' }}>
-              <div className="cgm-search-wrap">
-                <input
-                  id="member-email-input"
-                  type="text"
-                  placeholder="Search users to add…"
-                  value={search}
-                  onChange={(e) => { setSearch(e.target.value); setDropdownOpen(true); setError(''); }}
-                  onFocus={() => setDropdownOpen(true)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Escape') setDropdownOpen(false);
-                    if (e.key === 'Enter') { e.preventDefault(); if (suggestions[0]) handleSelect(suggestions[0]); }
-                  }}
-                  autoComplete="off"
-                />
+            <input
+              id="member-email-input"
+              type="text"
+              placeholder="Search users to add…"
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setError(''); }}
+              autoComplete="off"
+            />
 
-                {dropdownOpen && suggestions.length > 0 && (
-                  <ul className="cgm-suggestions" role="listbox">
-                    {suggestions.map(email => (
-                      <li
-                        key={email}
-                        className="cgm-suggestion-item"
-                        role="option"
-                        onMouseDown={() => handleSelect(email)}
-                      >
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="cgm-user-icon">
-                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-                        </svg>
-                        {email}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-
-                {dropdownOpen && search.trim() && suggestions.length === 0 && (
-                  <div className="cgm-no-suggestions">No matching users found</div>
-                )}
-              </div>
-            </div>
-
-            {/* Pills */}
+            {/* Selected members (pills) */}
             {members.length > 0 && (
               <div className="member-pills">
                 {members.map((email) => (
@@ -166,6 +119,25 @@ export default function CreateGroupModal({ onClose, onCreated }) {
                 ))}
               </div>
             )}
+
+            {/* Available users — inline list (not dropdown) */}
+            <div className="inline-user-list">
+              {available.length === 0 && search.trim() && (
+                <div className="inline-no-users">No matching users found</div>
+              )}
+              {available.map(email => (
+                <div
+                  key={email}
+                  className="inline-user-item"
+                  onClick={() => handleSelect(email)}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-user-icon">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                  </svg>
+                  {email}
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Error */}

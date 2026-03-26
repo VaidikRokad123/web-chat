@@ -1,0 +1,114 @@
+/* ══════════════════════════════════
+   Custom Gaming Cursor — Corner-Only Bracket Ring
+   ══════════════════════════════════ */
+
+/* Hide default cursor everywhere */
+*, *::before, *::after {
+  cursor: none !important;
+}
+
+/* Custom cursor — four corner brackets (rotating) */
+.cursor-ring {
+  position: fixed;
+  width: 30px;
+  height: 30px;
+  pointer-events: none;
+  z-index: 999999;
+  transform: translate(-50%, -50%) rotate(0deg);
+  animation: cursorSpin 3s linear infinite;
+  transition: width 0.15s ease, height 0.15s ease, opacity 0.15s ease;
+  opacity: 0.8;
+}
+
+/* Four corners via box-shadow trick — no middle edges */
+.cursor-ring::before,
+.cursor-ring::after,
+.cursor-corner-bl,
+.cursor-corner-br {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-color: var(--accent, #00e5ff);
+  border-style: solid;
+  transition: border-color 0.15s ease, width 0.15s ease, height 0.15s ease;
+}
+
+/* Top-left corner */
+.cursor-ring::before {
+  top: 0; left: 0;
+  border-width: 2px 0 0 2px;
+}
+/* Top-right corner */
+.cursor-ring::after {
+  top: 0; right: 0;
+  border-width: 2px 2px 0 0;
+}
+/* Bottom-left corner */
+.cursor-corner-bl {
+  bottom: 0; left: 0;
+  border-width: 0 0 2px 2px;
+}
+/* Bottom-right corner */
+.cursor-corner-br {
+  bottom: 0; right: 0;
+  border-width: 0 2px 2px 0;
+}
+
+/* Inner dot (center, follows mouse) */
+.cursor-dot {
+  position: fixed;
+  width: 4px;
+  height: 4px;
+  background: var(--accent, #00e5ff);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 999999;
+  transform: translate(-50%, -50%);
+  transition: transform 0.1s ease, background 0.1s ease, width 0.1s ease, height 0.1s ease;
+  box-shadow: 0 0 10px var(--accent, #00e5ff);
+}
+
+/* Rotation animation */
+@keyframes cursorSpin {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to   { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Click effect — grow + color change */
+.cursor-ring.clicking {
+  width: 40px;
+  height: 40px;
+}
+.cursor-ring.clicking::before,
+.cursor-ring.clicking::after,
+.cursor-ring.clicking .cursor-corner-bl,
+.cursor-ring.clicking .cursor-corner-br {
+  border-color: #ff00aa;
+  width: 10px;
+  height: 10px;
+}
+
+.cursor-dot.clicking {
+  width: 6px;
+  height: 6px;
+  transform: translate(-50%, -50%);
+  background: #ff00aa;
+  box-shadow: 0 0 12px #ff00aa;
+}
+
+/* Hover on interactive — faster spin, tighter ring */
+.cursor-ring.hovering {
+  animation-duration: 0.8s;
+  width: 22px;
+  height: 22px;
+  opacity: 1;
+}
+.cursor-ring.hovering::before,
+.cursor-ring.hovering::after,
+.cursor-ring.hovering .cursor-corner-bl,
+.cursor-ring.hovering .cursor-corner-br {
+  border-color: #00ffa9;
+  width: 6px;
+  height: 6px;
+}

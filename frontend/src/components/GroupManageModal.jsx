@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { addAdmin, removeAdmin, removeMember, addMemberToGroup, fetchAllUsers, deleteGroup } from '../services/api';
 import './GroupManageModal.css';
 
@@ -12,12 +12,7 @@ export default function GroupManageModal({ group, onClose, onUpdated, onDeleted 
 
   // All registered users (emails), fetched once on mount
   const [allUsers, setAllUsers] = useState([]);
-
-  // Search / dropdown state
   const [search, setSearch] = useState('');
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [selected, setSelected] = useState(''); // confirmed selection
-  const dropdownRef = useRef(null);
 
   // Local state so the list updates instantly after each action
   const [admins, setAdmins] = useState(() =>
@@ -34,23 +29,10 @@ export default function GroupManageModal({ group, onClose, onUpdated, onDeleted 
     fetchAllUsers().then(setAllUsers).catch(() => {});
   }, []);
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    function handleClickOutside(e) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setDropdownOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  // Reset search/selection when switching tabs
+  // Reset search when switching tabs
   function switchTab(tab) {
     setActiveTab(tab);
     setSearch('');
-    setSelected('');
-    setDropdownOpen(false);
     setFeedback({ type: '', msg: '' });
   }
 
@@ -59,13 +41,11 @@ export default function GroupManageModal({ group, onClose, onUpdated, onDeleted 
     setTimeout(() => setFeedback({ type: '', msg: '' }), 3500);
   }
 
-  // Compute which users are eligible to show in the dropdown
+  // Compute which users are eligible
   function eligibleUsers() {
     if (activeTab === 'Members') {
-      // Anyone not already a member
       return allUsers.filter(e => !members.includes(e));
     } else {
-      // Only existing members who are not already admins
       return members.filter(e => !admins.includes(e));
     }
   }
@@ -75,36 +55,21 @@ export default function GroupManageModal({ group, onClose, onUpdated, onDeleted 
     e.toLowerCase().includes(search.toLowerCase())
   );
 
-  function handleSearchChange(e) {
-    setSearch(e.target.value);
-    setSelected('');
-    setDropdownOpen(true);
-  }
-
-  function handleSelect(email) {
-    setSelected(email);
-    setSearch(email);
-    setDropdownOpen(false);
-  }
-
-  // ── Admin actions ──────────────────────────────────────
-
-  async function handleAddAdmin() {
-    const target = selected || search.trim().toLowerCase();
-    if (!target) return;
-    if (!members.includes(target)) {
+  // ── Admin actions ──
+  async function handleAddAdmin(email) {
+    if (!members.includes(email)) {
       setMsg('error', 'User must be a member of the group first.');
       return;
     }
-    if (admins.includes(target)) {
+    if (admins.includes(email)) {
       setMsg('error', 'User is already an admin.');
       return;
     }
     setLoading(true);
     try {
-      const result = await addAdmin(groupName, target);
-      setAdmins(prev => [...prev, target]);
-      setSearch(''); setSelected('');
+      const result = await addAdmin(groupName, email);
+      setAdmins(prev => [...prev, email]);
+      setSearch('');
       setMsg('success', 'Admin added successfully!');
       onUpdated?.(result.group);
     } catch (err) {
@@ -128,20 +93,17 @@ export default function GroupManageModal({ group, onClose, onUpdated, onDeleted 
     }
   }
 
-  // ── Member actions ─────────────────────────────────────
-
-  async function handleAddMember() {
-    const target = selected || search.trim().toLowerCase();
-    if (!target) return;
-    if (members.includes(target)) {
+  // ── Member actions ──
+  async function handleAddMember(email) {
+    if (members.includes(email)) {
       setMsg('error', 'User is already a member.');
       return;
     }
     setLoading(true);
     try {
-      const result = await addMemberToGroup(groupName, [target]);
-      setMembers(prev => [...prev, target]);
-      setSearch(''); setSelected('');
+      const result = await addMemberToGroup(groupName, [email]);
+      setMembers(prev => [...prev, email]);
+      setSearch('');
       setMsg('success', 'Member added!');
       onUpdated?.(result.group);
     } catch (err) {
@@ -166,7 +128,13 @@ export default function GroupManageModal({ group, onClose, onUpdated, onDeleted 
     }
   }
 
-  const canAdd = (selected || search.trim()) && !loading;
+  function handleInlineSelect(email) {
+    if (activeTab === 'Admins') {
+      handleAddAdmin(email);
+    } else {
+      handleAddMember(email);
+    }
+  }
 
   return (
     <div className="gm-backdrop" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
@@ -218,61 +186,41 @@ export default function GroupManageModal({ group, onClose, onUpdated, onDeleted 
           )
         )}
 
-        {/* ── Shared searchable dropdown for ADD action ── */}
-        <div className="gm-action-row" ref={dropdownRef} style={{ position: 'relative' }}>
-          <div className="gm-search-wrap">
-            <input
-              id={activeTab === 'Admins' ? 'admin-email-input' : 'member-manage-email-input'}
-              type="text"
-              placeholder={
-                activeTab === 'Admins'
-                  ? 'Search member to promote to admin…'
-                  : 'Search user to add as member…'
-              }
-              value={search}
-              onChange={handleSearchChange}
-              onFocus={() => setDropdownOpen(true)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') activeTab === 'Admins' ? handleAddAdmin() : handleAddMember();
-                if (e.key === 'Escape') setDropdownOpen(false);
-              }}
-              autoComplete="off"
-            />
+        {/* ── Search + Inline user list for ADD action ── */}
+        <div className="gm-action-row" style={{ flexDirection: 'column', gap: '6px' }}>
+          <input
+            id={activeTab === 'Admins' ? 'admin-email-input' : 'member-manage-email-input'}
+            type="text"
+            placeholder={
+              activeTab === 'Admins'
+                ? 'Search member to promote…'
+                : 'Search user to add…'
+            }
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            autoComplete="off"
+            className="gm-inline-search"
+          />
 
-            {/* Dropdown list */}
-            {dropdownOpen && suggestions.length > 0 && (
-              <ul className="gm-suggestions" role="listbox">
-                {suggestions.map(email => (
-                  <li
-                    key={email}
-                    className={`gm-suggestion-item ${selected === email ? 'selected' : ''}`}
-                    role="option"
-                    aria-selected={selected === email}
-                    onMouseDown={() => handleSelect(email)}
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="gm-user-icon">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-                    </svg>
-                    {email}
-                  </li>
-                ))}
-              </ul>
+          {/* Inline clickable user list */}
+          <div className="gm-inline-user-list">
+            {suggestions.length === 0 && search.trim() && (
+              <div className="gm-inline-no-users">No matching users</div>
             )}
-
-            {/* No results hint */}
-            {dropdownOpen && search.trim() && suggestions.length === 0 && (
-              <div className="gm-no-suggestions">No matching users found</div>
-            )}
+            {suggestions.map(email => (
+              <div
+                key={email}
+                className="gm-inline-user-item"
+                onClick={() => handleInlineSelect(email)}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="gm-user-icon">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                </svg>
+                <span>{email}</span>
+                <span className="gm-add-label">+ {activeTab === 'Admins' ? 'PROMOTE' : 'ADD'}</span>
+              </div>
+            ))}
           </div>
-
-          <button
-            className="gm-action-btn"
-            onClick={activeTab === 'Admins' ? handleAddAdmin : handleAddMember}
-            disabled={!canAdd}
-            id={activeTab === 'Admins' ? 'add-admin-btn' : 'add-member-manage-btn'}
-          >
-            {loading ? '…' : activeTab === 'Admins' ? '+ Add Admin' : '+ Add'}
-          </button>
         </div>
 
         {/* ── ADMINS LIST ── */}

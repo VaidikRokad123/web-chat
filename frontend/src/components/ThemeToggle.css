@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════
-   ThemeToggle — Sun/Moon Track Slider
+   ThemeToggle — HUD Style Switch
    ══════════════════════════════════════════════════════ */
 
 .theme-toggle {
@@ -13,52 +13,52 @@
 
 .toggle-track {
   position: relative;
-  width: 56px;
-  height: 30px;
-  border-radius: 15px;
-  background: linear-gradient(135deg, #74b9ff 0%, #81ecec 100%);
-  transition: background 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 52px;
+  height: 26px;
+  border-radius: 3px;
+  background: rgba(0, 255, 169, 0.1);
+  border: 1px solid rgba(0, 255, 169, 0.2);
+  transition: all 0.4s ease;
   overflow: hidden;
 }
 
 .dark .toggle-track {
-  background: linear-gradient(135deg, #2d3436 0%, #0d1b2a 100%);
+  background: rgba(0, 229, 255, 0.1);
+  border-color: rgba(0, 229, 255, 0.2);
 }
 
 .toggle-thumb {
   position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: #ffeaa7;
+  top: 2px;
+  left: 2px;
+  width: 22px;
+  height: 22px;
+  border-radius: 2px;
+  background: #00ffa9;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-              background 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-              box-shadow 0.5s ease;
-  box-shadow: 0 0 8px rgba(253, 203, 110, 0.6);
+  transition: transform 0.4s ease, background 0.4s ease, box-shadow 0.4s ease;
+  box-shadow: 0 0 8px rgba(0, 255, 169, 0.5);
   z-index: 2;
 }
 
 .dark .toggle-thumb {
   transform: translateX(26px);
-  background: #dfe6e9;
-  box-shadow: 0 0 8px rgba(223, 230, 233, 0.4);
+  background: #00e5ff;
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.5);
 }
 
 /* Icons */
 .icon {
   position: absolute;
-  width: 14px;
-  height: 14px;
-  transition: opacity 0.3s ease, transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 12px;
+  height: 12px;
+  transition: opacity 0.3s ease, transform 0.4s ease;
 }
 
 .sun-icon {
-  color: #e17055;
+  color: #0c0e14;
   opacity: 1;
   transform: rotate(0deg);
 }
@@ -69,7 +69,7 @@
 }
 
 .moon-icon {
-  color: #636e72;
+  color: #0c0e14;
   opacity: 0;
   transform: rotate(-180deg);
 }
@@ -79,7 +79,7 @@
   transform: rotate(0deg);
 }
 
-/* Stars */
+/* Stars as neon dots */
 .stars {
   position: absolute;
   inset: 0;
@@ -88,51 +88,35 @@
 
 .star {
   position: absolute;
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: #ffffff;
+  width: 2px;
+  height: 2px;
+  border-radius: 1px;
+  background: #00e5ff;
   opacity: 0;
-  transition: opacity 0.5s ease 0.15s;
+  transition: opacity 0.4s ease;
 }
 
 .dark .star {
   opacity: 1;
-  animation: twinkle 2s ease-in-out infinite;
+  animation: pulse 2s ease-in-out infinite;
 }
 
-.star-1 {
-  top: 7px;
-  left: 10px;
-  animation-delay: 0s !important;
-}
-.star-2 {
-  top: 18px;
-  left: 18px;
-  width: 2px;
-  height: 2px;
-  animation-delay: 0.6s !important;
-}
-.star-3 {
-  top: 10px;
-  left: 27px;
-  width: 2.5px;
-  height: 2.5px;
-  animation-delay: 1.2s !important;
-}
+.star-1 { top: 6px; left: 8px; animation-delay: 0s !important; }
+.star-2 { top: 16px; left: 16px; width: 1.5px; height: 1.5px; animation-delay: 0.6s !important; }
+.star-3 { top: 8px; left: 24px; width: 2px; height: 2px; animation-delay: 1.2s !important; }
 
-@keyframes twinkle {
-  0%, 100% { opacity: 0.4; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.4); }
+@keyframes pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
 }
 
 /* Hover effect */
 .theme-toggle:hover .toggle-track {
-  box-shadow: 0 0 16px rgba(108, 92, 231, 0.25);
+  box-shadow: var(--accent-glow);
 }
 
 .theme-toggle:active .toggle-thumb {
-  width: 28px;
+  width: 26px;
 }
 .dark .theme-toggle:active .toggle-thumb {
   transform: translateX(22px);

@@ -1,6 +1,8 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import CustomCursor from './components/CustomCursor';
+import BinaryRain from './components/BinaryRain';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Chat from './pages/Chat';
@@ -22,6 +24,9 @@ function PublicRoute({ children }) {
 
 export default function App() {
   return (
+    <>
+    <BinaryRain />
+    <CustomCursor />
     <Routes>
       <Route
         path="/login"
@@ -49,5 +54,6 @@ export default function App() {
       />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </>
   );
 }

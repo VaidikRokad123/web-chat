@@ -1,11 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
-import ThemeToggle from '../components/ThemeToggle';
 import CreateGroupModal from '../components/CreateGroupModal';
 import GroupManageModal from '../components/GroupManageModal';
 import StartChatModal from '../components/StartChatModal';
-import ParticleBackground from '../components/ParticleBackground';
 import { fetchGroups } from '../services/api';
 import './Chat.css';
 
@@ -14,7 +12,7 @@ function getInitials(name) {
 }
 
 function getAvatarColor(name) {
-  const colors = ['#6c5ce7', '#00b894', '#e17055', '#0984e3', '#fdcb6e', '#e84393', '#00cec9', '#a29bfe'];
+  const colors = ['#00ffa9', '#00e5ff', '#ff00aa', '#ffe600', '#ff3860', '#7c4dff', '#00bcd4', '#ff6d00'];
   let hash = 0;
   for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
   return colors[Math.abs(hash) % colors.length];
@@ -244,127 +242,75 @@ export default function Chat() {
 
   return (
     <div className="chat-layout">
-      <ParticleBackground />
-      {/* ── Sidebar ── */}
-      <aside className={`sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
-        <div className="sidebar-header">
-          <div className="sidebar-user">
-            <div className="user-avatar" style={{ background: 'var(--accent-gradient)' }}>
-              {userInitial}
-            </div>
-            <div className="user-info">
-              <span className="user-name">ChatVerse</span>
-              <span className="user-email">{userEmail}</span>
-            </div>
-          </div>
-          <div className="sidebar-actions">
-            <button
-              className="icon-btn"
-              onClick={() => setShowDMModal(true)}
-              title="New Chat"
-              id="new-chat-btn"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-              </svg>
-            </button>
-            <button
-              className="icon-btn"
-              onClick={() => setShowGroupModal(true)}
-              title="New Group"
-              id="new-group-btn"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                <circle cx="9" cy="7" r="4" />
-                <line x1="19" y1="8" x2="19" y2="14" />
-                <line x1="22" y1="11" x2="16" y2="11" />
-              </svg>
-            </button>
-            <ThemeToggle />
-            <button className="icon-btn" onClick={logout} title="Logout" id="logout-btn">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                <polyline points="16 17 21 12 16 7" />
-                <line x1="21" y1="12" x2="9" y2="12" />
-              </svg>
-            </button>
-          </div>
+      {/* ── Icon Sidebar (expandable) ── */}
+      <aside className={`icon-sidebar ${sidebarOpen ? 'expanded' : ''}`}>
+        {/* Top actions */}
+        <div className="icon-sidebar-top">
+          <button
+            className="sidebar-icon-btn expand-btn"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            title={sidebarOpen ? 'Collapse' : 'Expand'}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points={sidebarOpen ? '11 17 6 12 11 7' : '13 7 18 12 13 17'} />
+              <line x1="6" y1="12" x2="18" y2="12" opacity="0.3" />
+            </svg>
+          </button>
+          <button className="sidebar-icon-btn" onClick={() => setShowDMModal(true)} title="New Chat" id="new-chat-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+          </button>
+          <button className="sidebar-icon-btn" onClick={() => setShowGroupModal(true)} title="New Group" id="new-group-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <line x1="19" y1="8" x2="19" y2="14" />
+              <line x1="22" y1="11" x2="16" y2="11" />
+            </svg>
+          </button>
         </div>
 
-        <div className="sidebar-search">
-          <svg className="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-          <input
-            type="text"
-            placeholder="Search groups..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            id="search-conversations"
-          />
-        </div>
+        {/* Separator */}
+        <div className="icon-sidebar-sep" />
 
-        <div className="conversation-list">
+        {/* Group avatars */}
+        <div className="icon-sidebar-groups">
           {groupsLoading && (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '32px 0' }}>
-              <div className="loading-spinner" style={{ width: 28, height: 28 }} />
-            </div>
+            <div className="loading-spinner" style={{ width: 20, height: 20, margin: '8px auto' }} />
           )}
-          {!groupsLoading && groupsError && (
-            <p style={{ color: 'var(--error)', fontSize: '0.8rem', textAlign: 'center', padding: '24px 16px' }}>
-              {groupsError}
-            </p>
-          )}
-          {!groupsLoading && !groupsError && filteredGroups.length === 0 && (
-            <p style={{ color: 'var(--text-tertiary)', fontSize: '0.8125rem', textAlign: 'center', padding: '32px 16px' }}>
-              No groups yet. Create one!
-            </p>
-          )}
-          {filteredGroups.map(group => {
-            const lastMsg = group.lastMessage;
-            const previewText = lastMsg
-              ? (lastMsg.type === 'system' ? `📋 ${lastMsg.message}` : lastMsg.message)
-              : `${group.members?.length ?? 0} member${group.members?.length !== 1 ? 's' : ''}`;
-            const previewTime = lastMsg?.time
-              ? formatGroupTime(lastMsg.time)
-              : formatGroupTime(group.createdAt);
+          {filteredGroups.map(group => (
+            <button
+              key={group._id}
+              className={`group-icon-btn ${activeChat?._id === group._id ? 'active' : ''}`}
+              onClick={() => setActiveChat(group)}
+              title={getDisplayName(group)}
+            >
+              <div className="group-icon-avatar" style={{ background: getAvatarColor(getDisplayName(group)) }}>
+                {getInitials(getDisplayName(group))}
+              </div>
+              {sidebarOpen && (
+                <span className="group-icon-label" style={{ textTransform: 'capitalize' }}>
+                  {getDisplayName(group)}
+                </span>
+              )}
+              {unreadCounts[group._id] > 0 && (
+                <span className="icon-unread-dot" />
+              )}
+            </button>
+          ))}
+        </div>
 
-            return (
-              <button
-                key={group._id}
-                className={`conversation-item ${activeChat?._id === group._id ? 'active' : ''}`}
-                onClick={() => { setActiveChat(group); setSidebarOpen(false); }}
-              >
-                <div className="contact-avatar" style={{ background: getAvatarColor(getDisplayName(group)) }}>
-                  {getInitials(getDisplayName(group))}
-                </div>
-                <div className="contact-info">
-                  <div className="contact-top">
-                    <span
-                      className="contact-name"
-                      style={{
-                        textTransform: 'capitalize',
-                        fontWeight: unreadCounts[group._id] ? 700 : undefined
-                      }}
-                    >
-                      {getDisplayName(group)}
-                    </span>
-                    <span className="contact-time">{previewTime}</span>
-                  </div>
-                  <div className="contact-bottom">
-                    <span className="contact-last-msg" style={{ fontWeight: unreadCounts[group._id] ? 600 : undefined }}>
-                      {previewText}
-                    </span>
-                    {unreadCounts[group._id] > 0 && (
-                      <span className="unread-badge">{unreadCounts[group._id]}</span>
-                    )}
-                  </div>
-                </div>
-              </button>
-            );
-          })}
+        {/* Bottom — Logout */}
+        <div className="icon-sidebar-bottom">
+          <div className="icon-sidebar-sep" />
+          <button className="sidebar-icon-btn logout" onClick={logout} title="Logout" id="logout-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+          </button>
         </div>
       </aside>
 
@@ -372,13 +318,6 @@ export default function Chat() {
       <main className="chat-main">
         {/* Chat header */}
         <div className="chat-header">
-          <button className="mobile-menu-btn" onClick={() => setSidebarOpen(!sidebarOpen)}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="3" y1="12" x2="21" y2="12" />
-              <line x1="3" y1="6" x2="21" y2="6" />
-              <line x1="3" y1="18" x2="21" y2="18" />
-            </svg>
-          </button>
           {activeChat && (
             <>
               <div className="chat-header-info">
@@ -456,7 +395,7 @@ export default function Chat() {
         {activeChat && removedGroups.has(activeChat._id) ? (
           <div className="removed-notice">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
             </svg>
             You were removed from this group and can no longer send messages.
           </div>
