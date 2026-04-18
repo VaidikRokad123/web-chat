@@ -35,7 +35,26 @@ const createGroupController = async (req, res) => {
             }
         }
 
-        const group = await groupService.createGroup(name, admin._id, members);
+        let group = await groupService.createGroup(name, admin._id, members);
+
+        // Populate for response and socket events
+        group = await groupModel.findById(group._id)
+            .populate('admin', 'email username avatar')
+            .populate('members', 'email username avatar')
+            .lean();
+
+        // Real-time: notify all members so their sidebar updates and sockets join the room
+        const io = getIO();
+        if (io) {
+            const groupIdStr = group._id.toString();
+            const allUserIds = [...new Set([admin._id.toString(), ...members.map(id => id.toString())])];
+            for (const uid of allUserIds) {
+                io.to(uid).emit('group-added', group);
+                const sockets = await io.in(uid).fetchSockets();
+                for (const s of sockets) s.join(groupIdStr);
+            }
+        }
+
         return res.status(201).json({ message: "Group created successfully", group });
     }
     catch (error) {
@@ -252,10 +271,101 @@ const createDirectChatController = async (req, res) => {
             isDirectChat: true
         });
 
+        // Populate for response and socket events
+        group = await groupModel.findById(group._id)
+            .populate('admin', 'email username avatar')
+            .populate('members', 'email username avatar')
+            .lean();
+
+        // Real-time: notify both users so their sidebar updates and sockets join the room
+        const io = getIO();
+        if (io) {
+            const groupIdStr = group._id.toString();
+            for (const uid of [me._id, target._id]) {
+                io.to(uid.toString()).emit('group-added', group);
+                // Join all their sockets to the new room
+                const sockets = await io.in(uid.toString()).fetchSockets();
+                for (const s of sockets) s.join(groupIdStr);
+            }
+        }
+
         return res.status(201).json({ message: "Direct chat created", group });
     } catch (error) {
         console.log(error.message);
         return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+const searchMessagesController = async (req, res) => {
+    try {
+        const { groupId, q } = req.query;
+        if (!groupId || !q) return res.status(400).json({ message: "groupId and q are required" });
+
+        const chat = await Chat.findOne({ group: groupId })
+            .populate("messages.sender", "email username avatar");
+        if (!chat) return res.status(200).json({ messages: [] });
+
+        const query = q.toLowerCase();
+        const results = chat.messages.filter(msg =>
+            msg.type === 'message' && msg.message.toLowerCase().includes(query)
+        );
+
+        return res.status(200).json({ messages: results });
+    } catch (error) {
+        console.log(error.message);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+const uploadFileController = async (req, res) => {
+    try {
+        if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+
+        // Check if Cloudinary is configured
+        const hasCloudinary = process.env.CLOUDINARY_CLOUD_NAME && 
+                             process.env.CLOUDINARY_API_KEY && 
+                             process.env.CLOUDINARY_API_SECRET;
+
+        if (!hasCloudinary) {
+            return res.status(503).json({ 
+                message: "File upload is not configured. Please add Cloudinary credentials to .env file.",
+                error: "CLOUDINARY_NOT_CONFIGURED"
+            });
+        }
+
+        const cloudinary = (await import('../config/cloudinary.js')).default;
+
+        // Determine resource type based on mimetype
+        let resourceType = 'auto';
+        if (req.file.mimetype.startsWith('image/')) resourceType = 'image';
+        else if (req.file.mimetype.startsWith('video/')) resourceType = 'video';
+
+        // Upload to Cloudinary from buffer
+        const result = await new Promise((resolve, reject) => {
+            const stream = cloudinary.uploader.upload_stream(
+                {
+                    resource_type: resourceType,
+                    folder: 'chatverse',
+                    transformation: resourceType === 'image' ? [{ quality: 'auto', fetch_format: 'auto' }] : undefined
+                },
+                (error, result) => {
+                    if (error) reject(error);
+                    else resolve(result);
+                }
+            );
+            stream.end(req.file.buffer);
+        });
+
+        return res.status(200).json({
+            url: result.secure_url,
+            mediaType: req.file.mimetype,
+            fileName: req.file.originalname,
+            fileSize: req.file.size,
+            publicId: result.public_id
+        });
+    } catch (error) {
+        console.log(error.message);
+        return res.status(500).json({ message: "Upload failed: " + error.message });
     }
 };
 
@@ -267,6 +377,7 @@ export {
     removeAdminController,
     removeUserController,
     deleteGroupController,
-    createDirectChatController
+    createDirectChatController,
+    searchMessagesController,
+    uploadFileController
 };
-

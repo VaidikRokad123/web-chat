@@ -1,0 +1,251 @@
+/* Profile Modal — Gaming HUD style */
+
+.profile-modal {
+  width: 100%;
+  max-width: 400px;
+  background: rgba(8, 10, 16, 0.85);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 24px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.6);
+}
+
+.profile-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.profile-modal-header h2 {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0;
+}
+
+.modal-close-btn {
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.modal-close-btn:hover { color: var(--error); }
+
+.profile-avatar-preview {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.avatar-img-large {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 12px var(--accent);
+}
+
+.avatar-placeholder-large {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--bg-primary);
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 12px var(--accent);
+}
+
+.avatar-edit-hint {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.75);
+  color: var(--accent);
+  font-size: 0.55rem;
+  font-family: 'Share Tech Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 8px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+.profile-avatar-preview:hover .avatar-edit-hint {
+  opacity: 1;
+}
+
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.profile-field label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+  font-family: 'Share Tech Mono', monospace;
+}
+
+.profile-field input,
+.profile-field textarea {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-family: 'Share Tech Mono', monospace;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  resize: none;
+  box-sizing: border-box;
+}
+
+.profile-field input:focus,
+.profile-field textarea:focus {
+  border-color: var(--accent);
+  box-shadow: var(--accent-glow);
+}
+
+.profile-error {
+  color: var(--error);
+  font-size: 0.75rem;
+  text-align: center;
+  margin: 0;
+}
+
+.profile-save-btn {
+  width: 100%;
+  padding: 10px;
+  background: var(--accent);
+  color: var(--bg-primary);
+  border: none;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-family: 'Rajdhani', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: box-shadow 0.2s, opacity 0.2s;
+}
+.profile-save-btn:hover {
+  box-shadow: 0 0 20px var(--accent);
+}
+.profile-save-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* Modal overlay (shared) */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(4px);
+}
+
+/* ── Profile Viewer (read-only) ── */
+.profile-modal.viewer {
+  max-width: 340px;
+}
+
+.profile-avatar-preview {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+  position: relative;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.online-badge-large {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #00e676;
+  border: 2px solid rgba(8, 10, 16, 0.85);
+  box-shadow: 0 0 8px #00e676;
+}
+
+.profile-viewer-info {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.viewer-name {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  text-transform: capitalize;
+}
+
+.viewer-email {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  font-family: 'Share Tech Mono', monospace;
+}
+
+.viewer-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 12px;
+  background: rgba(0, 229, 255, 0.04);
+  border-radius: 4px;
+  border: 1px solid rgba(0, 229, 255, 0.06);
+}
+
+.viewer-label {
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-family: 'Share Tech Mono', monospace;
+}
+
+.viewer-value {
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  font-family: 'Share Tech Mono', monospace;
+}
+
+.viewer-value.online-text {
+  color: #00e676;
+  font-weight: 600;
+}

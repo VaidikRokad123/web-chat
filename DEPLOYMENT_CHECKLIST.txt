@@ -1,0 +1,111 @@
+ChatVerse Deployment Checklist
+================================
+
+BEFORE PUSHING TO GITHUB:
+--------------------------
+✅ .gitignore created (excludes .env files and node_modules)
+✅ backend/.env.example created (template for environment variables)
+✅ frontend/.env.example created (template for environment variables)
+✅ backend/package.json updated (added engines and build script)
+✅ frontend/.env.production created (for production deployment)
+✅ README.md updated (deployment instructions)
+
+FILES TO PUSH:
+--------------
+✅ All source code (backend/src/, frontend/src/)
+✅ Package files (package.json, package-lock.json)
+✅ Configuration files (vite.config.js, etc.)
+✅ .env.example files (NOT .env files!)
+✅ README.md
+✅ .gitignore
+
+FILES NOT TO PUSH (automatically excluded by .gitignore):
+----------------------------------------------------------
+❌ backend/.env (contains secrets!)
+❌ frontend/.env.local (contains local config)
+❌ node_modules/ (will be installed on server)
+❌ dist/ (will be built on server)
+
+GITHUB COMMANDS:
+----------------
+git init
+git add .
+git commit -m "Initial commit - ChatVerse real-time chat app"
+git branch -M main
+git remote add origin https://github.com/YOUR_USERNAME/chatverse.git
+git push -u origin main
+
+AFTER PUSHING TO GITHUB:
+------------------------
+1. Deploy Backend to Render.com:
+   - Create new Web Service
+   - Connect GitHub repo
+   - Root Directory: backend
+   - Build Command: npm install
+   - Start Command: npm start
+   - Add all environment variables from backend/.env.example
+
+2. Deploy Frontend to Vercel:
+   - Import GitHub repo
+   - Root Directory: frontend
+   - Framework: Vite
+   - Build Command: npm run build
+   - Output Directory: dist
+   - Add environment variables:
+     * VITE_API_URL=https://your-backend.onrender.com
+     * VITE_SOCKET_URL=https://your-backend.onrender.com
+
+3. Update Backend Environment Variables:
+   - FRONTEND_URL=https://your-frontend.vercel.app
+   - GOOGLE_CALLBACK_URL=https://your-backend.onrender.com/user/auth/google/callback
+
+4. Update Google OAuth (if using):
+   - Add authorized redirect URIs
+   - Add authorized JavaScript origins
+
+REQUIRED SERVICES:
+------------------
+✅ MongoDB Atlas (free tier) - for database
+✅ Cloudinary (free tier) - for file uploads
+✅ Google Cloud Console (optional) - for OAuth
+✅ Render.com (free tier) - for backend hosting
+✅ Vercel (free tier) - for frontend hosting
+
+ENVIRONMENT VARIABLES NEEDED:
+------------------------------
+Backend (Render):
+- PORT=6969
+- MONGODB_URI=your_mongodb_atlas_uri
+- JWT_SECRET=random_secret_key
+- FRONTEND_URL=https://your-frontend.vercel.app
+- SESSION_SECRET=random_session_secret
+- CLOUDINARY_CLOUD_NAME=your_cloudinary_name
+- CLOUDINARY_API_KEY=your_cloudinary_key
+- CLOUDINARY_API_SECRET=your_cloudinary_secret
+- GOOGLE_CLIENT_ID=your_google_client_id (optional)
+- GOOGLE_CLIENT_SECRET=your_google_client_secret (optional)
+- GOOGLE_CALLBACK_URL=https://your-backend.onrender.com/user/auth/google/callback
+
+Frontend (Vercel):
+- VITE_API_URL=https://your-backend.onrender.com
+- VITE_SOCKET_URL=https://your-backend.onrender.com
+
+TESTING AFTER DEPLOYMENT:
+--------------------------
+1. Open frontend URL
+2. Register/login
+3. Create a group or DM
+4. Send messages
+5. Test file upload
+6. Test voice/video call (in DM)
+7. Test contact requests
+8. Test typing indicators
+9. Test online/offline status
+
+TROUBLESHOOTING:
+----------------
+- If backend not connecting: Check Render logs
+- If CORS errors: Verify FRONTEND_URL in backend env
+- If file upload fails: Verify Cloudinary credentials
+- If OAuth fails: Check Google OAuth redirect URIs
+- If Socket.IO fails: Verify VITE_SOCKET_URL matches backend URL

@@ -1,0 +1,182 @@
+/* ══════════════════════════════════
+   CallModal — Gaming HUD Style
+   ══════════════════════════════════ */
+
+.call-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.9);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(8px);
+  animation: fadeIn 0.3s ease-out;
+}
+
+.call-modal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: 40px;
+  min-width: 320px;
+}
+
+.call-modal.video-mode {
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+/* Video elements */
+.call-videos {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #000;
+}
+
+.remote-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.local-video {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  width: 180px;
+  height: 135px;
+  border-radius: 8px;
+  border: 2px solid var(--accent);
+  object-fit: cover;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  z-index: 2;
+}
+
+/* Call info */
+.call-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.video-mode .call-info {
+  position: absolute;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+}
+
+.call-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--accent);
+  box-shadow: 0 0 20px var(--accent);
+  animation: callPulse 2s ease-in-out infinite;
+}
+
+.call-avatar-placeholder {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--bg-primary);
+  border: 3px solid var(--accent);
+  box-shadow: 0 0 20px var(--accent);
+  animation: callPulse 2s ease-in-out infinite;
+}
+
+@keyframes callPulse {
+  0%, 100% { box-shadow: 0 0 20px var(--accent); }
+  50% { box-shadow: 0 0 40px var(--accent), 0 0 60px rgba(0, 229, 255, 0.3); }
+}
+
+.call-name {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-transform: capitalize;
+  margin: 0;
+}
+
+.call-status {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin: 0;
+  animation: statusBlink 1.5s ease-in-out infinite;
+}
+
+@keyframes statusBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Call actions */
+.call-actions {
+  display: flex;
+  gap: 20px;
+}
+
+.video-mode .call-actions {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+}
+
+.call-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.call-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+.call-btn.accept {
+  background: #00e676;
+  color: #000;
+  box-shadow: 0 0 20px rgba(0, 230, 118, 0.5);
+}
+
+.call-btn.accept:hover {
+  box-shadow: 0 0 30px rgba(0, 230, 118, 0.7);
+  transform: scale(1.1);
+}
+
+.call-btn.reject, .call-btn.end {
+  background: #ff2d55;
+  color: #fff;
+  box-shadow: 0 0 20px rgba(255, 45, 85, 0.5);
+}
+
+.call-btn.reject:hover, .call-btn.end:hover {
+  box-shadow: 0 0 30px rgba(255, 45, 85, 0.7);
+  transform: scale(1.1);
+}

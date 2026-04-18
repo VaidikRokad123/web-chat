@@ -17,13 +17,38 @@ const singleMessageSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ['message', 'system'],
+        enum: ['message', 'system', 'image', 'file'],
         default: 'message'
     },
     readBy: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"
-    }]
+    }],
+    deliveredTo: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
+    }],
+    deliveryStatus: {
+        type: String,
+        enum: ['sent', 'delivered', 'seen'],
+        default: 'sent'
+    },
+    mediaUrl: {
+        type: String,
+        default: null
+    },
+    mediaType: {
+        type: String,
+        default: null
+    },
+    fileName: {
+        type: String,
+        default: null
+    },
+    fileSize: {
+        type: Number,
+        default: null
+    }
 }, { _id: true });
 
 const chatSchema = new mongoose.Schema({

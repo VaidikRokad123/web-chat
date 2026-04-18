@@ -2,6 +2,7 @@ import { Router } from "express";
 import * as groupController from "../controllers/group.controller.js";
 import { body, validationResult } from "express-validator";
 import * as authMiddleware from "../middleware/auth.middleware.js";
+import { upload } from "../middleware/upload.js";
 
 const router = Router();
 
@@ -53,6 +54,17 @@ router.post("/direct",
     authMiddleware.authUser,
     body("targetEmail").notEmpty().withMessage("Target email is required"),
     groupController.createDirectChatController
+);
+
+router.get("/search",
+    authMiddleware.authUser,
+    groupController.searchMessagesController
+);
+
+router.post("/upload",
+    authMiddleware.authUser,
+    upload.single('file'),
+    groupController.uploadFileController
 );
 
 export default router;

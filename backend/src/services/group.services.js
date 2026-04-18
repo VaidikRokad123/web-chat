@@ -38,8 +38,8 @@ const getAllGroups = async (userId) => {
     try {
         const groups = await groupModel
             .find({ $or: [{ admin: userId }, { members: userId }] })
-            .populate('admin', 'email')
-            .populate('members', 'email')
+            .populate('admin', 'email username avatar publicKey')
+            .populate('members', 'email username avatar publicKey')
             .lean();
 
         // Attach lastMessage to each group

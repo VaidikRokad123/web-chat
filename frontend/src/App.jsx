@@ -5,6 +5,7 @@ import CustomCursor from './components/CustomCursor';
 import BinaryRain from './components/BinaryRain';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import AuthCallback from './pages/AuthCallback';
 import Chat from './pages/Chat';
 
 function PublicRoute({ children }) {
@@ -44,6 +45,7 @@ export default function App() {
           </PublicRoute>
         }
       />
+      <Route path="/auth/callback" element={<AuthCallback />} />
       <Route
         path="/"
         element={

@@ -202,6 +202,13 @@
   box-shadow: 0 0 6px var(--accent);
 }
 
+/* When expanded, switch to flow-based centering */
+.icon-sidebar.expanded .icon-unread-dot {
+  position: static;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
 .icon-sidebar-bottom {
   display: flex;
   flex-direction: column;
@@ -442,9 +449,35 @@
   margin-top: 3px;
   font-family: 'Share Tech Mono', monospace;
   letter-spacing: 0.03em;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 .message.sent .message-time {
   text-align: right;
+  justify-content: flex-end;
+}
+
+/* Delivery ticks */
+.delivery-tick {
+  font-size: 0.6rem;
+  color: var(--text-tertiary);
+}
+.delivery-tick.delivered {
+  color: var(--text-secondary);
+}
+.delivery-tick.seen {
+  color: var(--accent);
+}
+
+/* Online dot in header */
+.chat-header-status {
+  font-size: 0.6875rem;
+  color: var(--text-tertiary);
+  font-family: 'Share Tech Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: block;
 }
 
 /* Removed notice */

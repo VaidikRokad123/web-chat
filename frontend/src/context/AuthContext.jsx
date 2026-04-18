@@ -37,8 +37,8 @@ export function AuthProvider({ children }) {
     return data;
   }
 
-  async function register(email, password) {
-    const data = await post('/user/register', { email, password }, false);
+  async function register(email, password, extras = {}) {
+    const data = await post('/user/register', { email, password, ...extras }, false);
     setToken(data.token);
     setUser(data.user);
     return data;
@@ -54,8 +54,12 @@ export function AuthProvider({ children }) {
     setUser(null);
   }
 
+  function handleGoogleCallback(token) {
+    setToken(token);
+  }
+
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, logout, handleGoogleCallback }}>
       {children}
     </AuthContext.Provider>
   );

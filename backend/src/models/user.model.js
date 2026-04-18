@@ -14,8 +14,64 @@ const userSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: true,
+        required: false,
         select: false
+    },
+    username: {
+        type: String,
+        trim: true,
+        default: ''
+    },
+    avatar: {
+        type: String,
+        default: ''
+    },
+    bio: {
+        type: String,
+        maxlength: 200,
+        default: ''
+    },
+    status: {
+        type: String,
+        maxlength: 50,
+        default: 'Hey there!'
+    },
+    lastSeen: {
+        type: Date,
+        default: Date.now
+    },
+    googleId: {
+        type: String,
+        unique: true,
+        sparse: true
+    },
+    authProvider: {
+        type: String,
+        enum: ['google', 'local'],
+        default: 'local'
+    },
+    contacts: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }],
+    contactRequests: [{
+        from: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        },
+        status: {
+            type: String,
+            enum: ['pending', 'accepted', 'rejected'],
+            default: 'pending'
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now
+        }
+    }],
+    publicKey: {
+        type: String,
+        default: null
     }
 },
 

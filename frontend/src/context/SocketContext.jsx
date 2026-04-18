@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
 import { useAuth } from './AuthContext';
+import { getPublicKeyBase64, getOrCreateKeyPair } from '../utils/encryption';
 
 const SocketContext = createContext(null);
 
@@ -20,6 +21,9 @@ export function SocketProvider({ children }) {
       return;
     }
 
+    // Ensure encryption keys exist
+    getOrCreateKeyPair();
+
     // Connect with auth token
     const serverUrl = import.meta.env.VITE_API_URL || 'http://localhost:6969';
     const newSocket = io(serverUrl, {
@@ -29,6 +33,8 @@ export function SocketProvider({ children }) {
 
     newSocket.on('connect', () => {
       console.log('⚡ Socket connected:', newSocket.id);
+      // Publish public key for E2E encryption key exchange
+      newSocket.emit('publish-public-key', { publicKey: getPublicKeyBase64() });
     });
 
     newSocket.on('connect_error', (err) => {
